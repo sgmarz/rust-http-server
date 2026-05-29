@@ -1,7 +1,7 @@
 use clap::Parser;
 use std::path::PathBuf;
 
-/// A simple static HTTP file server — a Rust clone of `npx http-server`.
+/// A simple static HTTP file server.
 #[derive(Parser, Debug, Clone)]
 #[command(name = "http-server", version, about, long_about = None)]
 pub struct Args {
@@ -18,7 +18,7 @@ pub struct Args {
     pub address: String,
 
     /// Enable directory listing when no index.html is found.
-    #[arg(short = 'd', long, default_value_t = true)]
+    #[arg(short = 'd', long, default_value_t = false)]
     pub dir_listing: bool,
 
     /// Cache-Control max-age in seconds (0 disables caching).
