@@ -6,7 +6,7 @@ use std::path::PathBuf;
 #[command(name = "http-server", version, about, long_about = None)]
 pub struct Args {
     /// Root directory to serve files from.
-    #[arg(default_value = "/")]
+    #[arg(default_value = ".")]
     pub root: PathBuf,
 
     /// Port to listen on.
