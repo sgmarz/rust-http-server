@@ -1,14 +1,12 @@
 use clap::Parser;
 use std::path::PathBuf;
 
-static CWD: &str = env!("PWD");
-
 /// A simple static HTTP file server.
 #[derive(Parser, Debug, Clone)]
 #[command(name = "http-server", version, about, long_about = None)]
 pub struct Args {
     /// Root directory to serve files from.
-    #[arg(default_value = CWD)]
+    #[arg(default_value = "/")]
     pub root: PathBuf,
 
     /// Port to listen on.
@@ -24,7 +22,7 @@ pub struct Args {
     pub no_dir_listing: bool,
 
     /// Cache-Control max-age in seconds (0 disables caching).
-    #[arg(short, long, default_value_t = 3600)]
+    #[arg(short, long, default_value_t = 0)]
     pub cache: u64,
 
     /// Silences per-request log lines.
