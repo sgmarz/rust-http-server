@@ -27,7 +27,7 @@ pub async fn run(args: Args) {
     println!("  serving : {}", root_display.display());
     println!("  address : http://{bind_addr}");
     println!("  cache   : {}s", args.cache);
-    println!("  listing : {}", args.dir_listing);
+    println!("  listing : {}", !args.no_dir_listing);
     println!();
     println!("Hit Ctrl-C to stop.");
     println!();

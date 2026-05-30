@@ -17,9 +17,9 @@ pub struct Args {
     #[arg(short, long, default_value = "0.0.0.0")]
     pub address: String,
 
-    /// Enable directory listing when no index.html is found.
+    /// Disable directory listing when no index.html is found.
     #[arg(short = 'd', long, default_value_t = false)]
-    pub dir_listing: bool,
+    pub no_dir_listing: bool,
 
     /// Cache-Control max-age in seconds (0 disables caching).
     #[arg(short, long, default_value_t = 3600)]

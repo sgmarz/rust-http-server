@@ -68,7 +68,7 @@ async fn build_response(req: &Request, args: &Args) -> Response {
         if index.is_file() {
             serve_file(&index, args.cache).await
         }
-        else if args.dir_listing {
+        else if !args.no_dir_listing {
             serve_directory(&resolved, &decoded, args.cache).await
         }
         else {
