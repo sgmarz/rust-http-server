@@ -98,7 +98,6 @@ async fn resolve_safe(root: &Path, path: &Path) -> Option<PathBuf> {
     else {
         normalized
     };
-
     if canon_path.starts_with(&canon_root) {
         Some(canon_path)
     }
@@ -111,7 +110,7 @@ async fn resolve_safe(root: &Path, path: &Path) -> Option<PathBuf> {
 fn normalize_path(path: &Path) -> PathBuf {
     let mut out = PathBuf::new();
     for component in path.components() {
-        use std::path::Component::*;
+        use std::path::Component::{ParentDir, CurDir};
         match component {
             ParentDir => {
                 out.pop();
