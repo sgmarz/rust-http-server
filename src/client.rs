@@ -5,6 +5,7 @@ use tokio::fs;
 use tokio::io::{AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 
+use crate::mime;
 use crate::args::Args;
 use crate::http::{self, ParseError, Request, Response};
 
@@ -127,7 +128,7 @@ fn normalize_path(path: &Path) -> PathBuf {
 async fn serve_file(path: &Path, cache_max_age: u64) -> Response {
     match fs::read(path).await {
         Ok(bytes) => {
-            let mime = http::mime_type(path);
+            let mime = mime::mime_type(path);
             Response::ok(bytes, mime, cache_max_age)
         }
         Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => Response::forbidden(),
