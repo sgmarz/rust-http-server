@@ -84,7 +84,8 @@ async fn build_response(req: &Request, args: &Args) -> Response {
     }
 }
 
-/// Ensure `path` is within `root` after canonicalization.
+/// Ensure `path` is within `root` after canonicalization. This prevents
+/// injection attacks.
 async fn resolve_safe(root: &Path, path: &Path) -> Option<PathBuf> {
     // Canonicalize root once; we use a simpler lexical check if fs fails.
     let canon_root = fs::canonicalize(root).await.ok()?;
