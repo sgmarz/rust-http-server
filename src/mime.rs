@@ -37,14 +37,22 @@ pub fn mime_type(path: &Path) -> &'static str {
         _ => determine_mime_type(path),
     }
 }
-
+const ASCII_FAILURES: usize = 15;
 fn determine_mime_type(path: &Path) -> &'static str {
     if let Ok(fl) = File::open(path) {
+        let mut num_failures = 0;
+        let mut at = 0;
         for b in fl.bytes() {
             let byte = b.unwrap_or(0);
             if !byte.is_ascii() {
-                return "application/octet-stream";
+                eprintln!("Byte failed at {}: {:x}", at, byte);
+                num_failures += 1;
+                if num_failures >= ASCII_FAILURES {
+                    eprintln!("Got {} ASCII failures.", num_failures);
+                    return "application/octet-stream";
+                }
             }
+            at += 1;
         }
         "text/plain"
     }

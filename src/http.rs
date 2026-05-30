@@ -126,6 +126,17 @@ impl Response {
         }
     }
 
+    pub fn too_large() -> Self {
+        let body = b"<html><body><H1>413 Content Too Large</h1></body></html>".to_vec();
+        Self {
+            status: 413,
+            reason: "Content Too Large",
+            content_type: "text/html",
+            cache_max_age: 0,
+            body
+        }
+    }
+
     /// Serialise the response into a byte buffer ready to write to the socket.
     pub fn into_bytes(self) -> Vec<u8> {
         let cache_header = if self.cache_max_age > 0 {

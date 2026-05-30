@@ -128,10 +128,10 @@ fn normalize_path(path: &Path) -> PathBuf {
 async fn serve_file(path: &Path, cache_max_age: u64) -> Response {
     match fs::read(path).await {
         Ok(bytes) => {
-            let mime = mime::mime_type(path);
-            Response::ok(bytes, mime, cache_max_age)
+            Response::ok(bytes, mime::mime_type(path), cache_max_age)
         }
         Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => Response::forbidden(),
+        Err(e) if e.kind() == std::io::ErrorKind::OutOfMemory => Response::too_large(),
         Err(_) => Response::not_found(),
     }
 }
