@@ -1,4 +1,4 @@
-use std::{fs::File, path::Path, io::Read};
+use std::{fs::File, io::Read, path::Path};
 
 pub fn mime_type(path: &Path) -> &'static str {
     match path.extension().and_then(|e| e.to_str()) {
@@ -43,11 +43,10 @@ fn determine_mime_type(path: &Path) -> &'static str {
         for b in fl.bytes().take(ASCII_FAILURES) {
             let byte = b.unwrap_or(0);
             if !byte.is_ascii() {
-                    return "application/octet-stream";
+                return "application/octet-stream";
             }
         }
         return "text/plain";
     }
     "application/octet-stream"
 }
-

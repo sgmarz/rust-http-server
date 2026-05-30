@@ -66,10 +66,7 @@ pub async fn parse_request(stream: &mut BufReader<TcpStream>) -> Result<Request,
         }
     }
 
-    Ok(Request {
-        method,
-        path,
-    })
+    Ok(Request { method, path })
 }
 
 // ── Response ─────────────────────────────────────────────────────────────────
@@ -133,7 +130,7 @@ impl Response {
             reason: "Content Too Large",
             content_type: "text/html",
             cache_max_age: 0,
-            body
+            body,
         }
     }
 
@@ -160,4 +157,3 @@ impl Response {
         buf
     }
 }
-

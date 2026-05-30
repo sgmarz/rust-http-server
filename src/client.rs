@@ -5,9 +5,9 @@ use tokio::fs;
 use tokio::io::{AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 
-use crate::mime;
 use crate::args::Args;
 use crate::http::{self, ParseError, Request, Response};
+use crate::mime;
 
 /// Entry point for a single accepted connection.
 pub async fn handle(stream: TcpStream, addr: SocketAddr, args: Args) {
@@ -111,7 +111,7 @@ async fn resolve_safe(root: &Path, path: &Path) -> Option<PathBuf> {
 fn normalize_path(path: &Path) -> PathBuf {
     let mut out = PathBuf::new();
     for component in path.components() {
-        use std::path::Component::{ParentDir, CurDir};
+        use std::path::Component::{CurDir, ParentDir};
         match component {
             ParentDir => {
                 out.pop();
@@ -127,9 +127,7 @@ fn normalize_path(path: &Path) -> PathBuf {
 
 async fn serve_file(path: &Path, cache_max_age: u64) -> Response {
     match fs::read(path).await {
-        Ok(bytes) => {
-            Response::ok(bytes, mime::mime_type(path), cache_max_age)
-        }
+        Ok(bytes) => Response::ok(bytes, mime::mime_type(path), cache_max_age),
         Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => Response::forbidden(),
         Err(e) if e.kind() == std::io::ErrorKind::OutOfMemory => Response::too_large(),
         Err(_) => Response::not_found(),
