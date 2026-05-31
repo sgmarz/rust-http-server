@@ -124,7 +124,7 @@ impl Response {
     }
 
     pub fn too_large() -> Self {
-        let body = b"<html><body><H1>413 Content Too Large</h1></body></html>".to_vec();
+        let body = b"<html><body><h1>413 Content Too Large</h1></body></html>".to_vec();
         Self {
             status: 413,
             reason: "Content Too Large",
