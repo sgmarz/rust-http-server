@@ -6,14 +6,14 @@ use tokio::io::{AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 
 use crate::args::Args;
-use crate::http::{self, ParseError, Request, Response};
+use crate::http::{parse_request, ParseError, Request, Response};
 use crate::mime;
 
 /// Entry point for a single accepted connection.
 pub async fn handle(stream: TcpStream, addr: SocketAddr, args: Args) {
     let mut reader = BufReader::new(stream);
 
-    let request = match http::parse_request(&mut reader).await {
+    let request = match parse_request(&mut reader).await {
         Ok(r) => r,
         Err(ParseError::Eof) => return, // client disconnected cleanly
         Err(e) => {

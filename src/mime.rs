@@ -37,7 +37,7 @@ pub fn mime_type(path: &Path) -> &'static str {
         _ => determine_mime_type(path),
     }
 }
-const ASCII_FAILURES: usize = 15;
+const ASCII_FAILURES: usize = 25;
 fn determine_mime_type(path: &Path) -> &'static str {
     if let Ok(fl) = File::open(path) {
         for b in fl.bytes().take(ASCII_FAILURES) {
