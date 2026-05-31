@@ -26,6 +26,10 @@ pub struct Args {
     pub cache: u64,
 
     /// Silences per-request log lines.
-    #[arg(short, long)]
+    #[arg(short, long, default_value_t = false)]
     pub silent: bool,
+
+    /// Silences all non-error output.
+    #[arg(short, long, default_value_t = false)]
+    pub quiet: bool,
 }

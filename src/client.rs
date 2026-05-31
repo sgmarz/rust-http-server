@@ -1,13 +1,17 @@
-use std::net::SocketAddr;
-use std::path::{Path, PathBuf};
-
-use tokio::fs;
-use tokio::io::{AsyncWriteExt, BufReader};
-use tokio::net::TcpStream;
-
-use crate::args::Args;
-use crate::http::{parse_request, ParseError, Request, Response};
-use crate::mime;
+use crate::{
+    args::Args,
+    http::{ParseError, Request, Response, parse_request},
+    mime,
+};
+use std::{
+    net::SocketAddr,
+    path::{Path, PathBuf},
+};
+use tokio::{
+    fs,
+    io::{AsyncWriteExt, BufReader},
+    net::TcpStream,
+};
 
 /// Entry point for a single accepted connection.
 pub async fn handle(stream: TcpStream, addr: SocketAddr, args: Args) {
@@ -24,7 +28,7 @@ pub async fn handle(stream: TcpStream, addr: SocketAddr, args: Args) {
 
     let response = build_response(&request, &args).await;
 
-    if !args.silent {
+    if !args.quiet && !args.silent {
         println!(
             "{addr} \"{} {}\" {} {}",
             request.method,

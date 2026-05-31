@@ -1,5 +1,7 @@
-use tokio::io::{AsyncBufReadExt, BufReader};
-use tokio::net::TcpStream;
+use tokio::{
+    io::{AsyncBufReadExt, BufReader},
+    net::TcpStream,
+};
 
 // ── Request ──────────────────────────────────────────────────────────────────
 
@@ -140,7 +142,7 @@ impl Response {
             format!("Cache-Control: max-age={}\r\n", self.cache_max_age)
         }
         else {
-            "Cache-Control: no-store\r\n".to_owned()
+            String::from("Cache-Control: no-store\r\n")
         };
 
         let header = format!(

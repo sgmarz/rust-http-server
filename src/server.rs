@@ -1,10 +1,6 @@
+use crate::{args::Args, client};
 use std::sync::Arc;
-
-use tokio::net::TcpListener;
-use tokio::signal;
-
-use crate::args::Args;
-use crate::client;
+use tokio::{net::TcpListener, signal};
 
 pub async fn run(args: Args) {
     let bind_addr = format!("{}:{}", args.address, args.port);
@@ -23,14 +19,16 @@ pub async fn run(args: Args) {
         .canonicalize()
         .unwrap_or_else(|_| args.root.clone());
 
-    println!("http-server");
-    println!("  serving : {}", root_display.display());
-    println!("  address : http://{bind_addr}");
-    println!("  cache   : {}s", args.cache);
-    println!("  listing : {}", !args.no_dir_listing);
-    println!();
-    println!("Hit Ctrl-C to stop.");
-    println!();
+    if !args.quiet {
+        println!("http-server");
+        println!("  serving : {}", root_display.display());
+        println!("  address : http://{bind_addr}");
+        println!("  cache   : {}s", args.cache);
+        println!("  listing : {}", !args.no_dir_listing);
+        println!();
+        println!("Hit Ctrl-C to stop.");
+        println!();
+    }
 
     // Share args across tasks without cloning the PathBuf every accept.
     let args = Arc::new(args);
@@ -49,7 +47,9 @@ pub async fn run(args: Args) {
                 }
             }
             _ = signal::ctrl_c() => {
-                println!("\nshutting down.");
+                if !args.quiet {
+                    println!("\nshutting down.");
+                }
                 break;
             }
         }
