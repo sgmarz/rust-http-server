@@ -47,8 +47,8 @@ pub async fn handle(stream: TcpStream, addr: SocketAddr, args: Args) {
     }
 }
 
-// ── Request → Response ───────────────────────────────────────────────────────
-
+/// Build an HTTP response. This produces the response
+/// that can be sent later.
 async fn build_response(req: &Request, args: &Args) -> Response {
     // Only GET is supported for a static file server.
     if req.method != "GET" && req.method != "HEAD" {
@@ -70,7 +70,7 @@ async fn build_response(req: &Request, args: &Args) -> Response {
     if resolved.is_dir() {
         // Try index.html first.
         let index = resolved.join("index.html");
-        if index.is_file() {
+        if !args.no_index && index.is_file() {
             serve_file(&index, args.cache).await
         }
         else if !args.no_dir_listing {

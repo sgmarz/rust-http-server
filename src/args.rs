@@ -21,6 +21,10 @@ pub struct Args {
     #[arg(short = 'd', long, default_value_t = false)]
     pub no_dir_listing: bool,
 
+    /// Always produce a dir listing even if index.html is found.
+    #[arg(short = 'i', long, default_value_t = false, conflicts_with = "no_dir_listing")]
+    pub no_index: bool,
+
     /// Cache-Control max-age in seconds (0 disables caching).
     #[arg(short, long, default_value_t = 0)]
     pub cache: u64,
