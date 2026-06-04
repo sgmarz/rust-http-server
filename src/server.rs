@@ -1,17 +1,10 @@
-use crate::{args::Args, client};
-use std::sync::Arc;
+use crate::{args::Args, client, ssl};
 use tokio::{net::TcpListener, signal};
+use tokio::io::{copy, sink, split, AsyncWriteExt};
+use std::{io, sync::Arc};
 
 pub async fn run(args: Args) {
     let bind_addr = format!("{}:{}", args.address, args.port);
-
-    let listener = match TcpListener::bind(&bind_addr).await {
-        Ok(l) => l,
-        Err(e) => {
-            eprintln!("error: could not bind to {bind_addr}: {e}");
-            std::process::exit(1);
-        }
-    };
 
     // Canonicalize the root so we can print an absolute path.
     let root_display = args
@@ -36,10 +29,27 @@ pub async fn run(args: Args) {
         println!();
     }
 
+    if !args.tls {
+        run_http(args).await;
+    }
+    else {
+        run_tls(args).await;
+    }
+
+}
+
+async fn run_http(args: Args) {
+    let bind_addr = format!("{}:{}", args.address, args.port);
+    let listener = match TcpListener::bind(&bind_addr).await {
+        Ok(l) => l,
+        Err(e) => {
+            eprintln!("error: could not bind to {bind_addr}: {e}");
+            std::process::exit(1);
+        }
+    };
     // Share args across tasks without cloning the PathBuf every accept.
     let args = Arc::new(args);
-
-    loop {
+    loop {    
         tokio::select! {
             result = listener.accept() => {
                 match result {
@@ -47,7 +57,6 @@ pub async fn run(args: Args) {
                         let args = Arc::clone(&args);
                         tokio::spawn(async move {
                             client::handle(stream, addr, (*args).clone()).await;
-
                         });
                     }
                     Err(e) => eprintln!("accept error: {e}"),
@@ -60,5 +69,57 @@ pub async fn run(args: Args) {
                 break;
             }
         }
+    }
+}
+
+async fn run_tls(args: Args) {
+    // Args should error check this for us.
+    let cert_file = args.cert.clone().unwrap().to_string_lossy().into_owned();
+    let key_file = args.key.clone().unwrap().to_string_lossy().into_owned();
+    let addr = args.host.unwrap();
+
+    let (acceptor, listener) = match ssl::create_tls_server(&cert_file, &key_file, &addr).await {
+        Ok((x, y)) => (x, y),
+        Err(e) => {
+            eprintln!("ERROR: {:?}", e.as_ref());
+            return;
+        }
+    };
+    // We have acceptor: TlsAcceptor and listener: TcpListener at this point.
+    loop {
+        let (stream, peer_addr) = match listener.accept().await {
+            Ok((stream , addr)) => (stream, addr),
+            Err(e) => {
+                eprintln!("{}", e);
+                continue;
+            }
+        };
+        let acceptor = acceptor.clone();
+
+        let fut = async move {
+            let mut stream = acceptor.accept(stream).await?;
+
+            let mut output = sink();
+            stream
+                .write_all(
+                    &b"HTTP/1.0 200 ok\r\n\
+                Connection: close\r\n\
+                Content-length: 12\r\n\
+                \r\n\
+                Hello world!"[..],
+                )
+                .await?;
+            stream.shutdown().await?;
+            copy(&mut stream, &mut output).await?;
+            println!("Hello: {}", peer_addr);
+
+            Ok(()) as io::Result<()>
+        };
+
+        tokio::spawn(async move {
+            if let Err(err) = fut.await {
+                eprintln!("{:?}", err);
+            }
+        });
     }
 }
