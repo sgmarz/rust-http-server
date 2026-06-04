@@ -1,6 +1,4 @@
-use rustls::ServerConfig;
-use rustls_pemfile as pem;
-use tokio_rustls::TlsAcceptor;
+use tokio_rustls::{ServerConfig, TlsAcceptor};
 use std::{fs::File, io, sync::Arc};
 
 pub fn load_tls_config(cert_path: &str, key_path: &str) -> io::Result<Arc<ServerConfig>> {

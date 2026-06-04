@@ -11,5 +11,3 @@ path = "src/main.rs"
 clap = { version = "4", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
 tokio-rustls = { version = "0.26" }
-rustls = { version = "0.23" }
-rustls-pemfile = { version = "2" }
