@@ -1,11 +1,5 @@
-use std::io;
-use std::net::ToSocketAddrs;
-
-use std::error::Error as StdError;
-use std::sync::Arc;
-
-use rustls::pki_types::pem::PemObject;
-use rustls::pki_types::{CertificateDer, PrivateKeyDer};
+use std::{io, net::ToSocketAddrs, error::Error as StdError, sync::Arc};
+use rustls::pki_types::{pem::PemObject, CertificateDer, PrivateKeyDer};
 use tokio::net::TcpListener;
 use tokio_rustls::{TlsAcceptor, rustls};
 
