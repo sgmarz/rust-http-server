@@ -1,5 +1,5 @@
 use tokio::{
-    io::{AsyncBufReadExt, BufReader},
+    io::{AsyncBufReadExt, AsyncRead, BufReader},
     net::TcpStream,
 };
 
@@ -47,7 +47,7 @@ impl From<std::io::Error> for ParseError {
 
 // We hand-roll the parser to avoid external deps.  Only the request line is
 // needed for a static file server; headers are drained but not stored.
-pub async fn parse_request(stream: &mut BufReader<TcpStream>) -> Result<Request, ParseError> {
+pub async fn parse_request<R: AsyncRead + Unpin>(stream: &mut BufReader<R>) -> Result<Request, ParseError> {
     // Read the request line (e.g. "GET /index.html HTTP/1.1")
     let mut request_line = String::new();
     let n = stream.read_line(&mut request_line).await?;

@@ -12,9 +12,44 @@ use tokio::{
     io::{AsyncWriteExt, BufReader},
     net::TcpStream,
 };
+use tokio_rustls::{TlsStream};
 
 /// Entry point for a single accepted connection.
 pub async fn handle(stream: TcpStream, addr: SocketAddr, args: Args) {
+    let mut reader = BufReader::new(stream);
+
+    let request = match parse_request(&mut reader).await {
+        Ok(r) => r,
+        Err(ParseError::Eof) => return, // client disconnected cleanly
+        Err(e) => {
+            eprintln!("[{addr}] parse error: {e}");
+            return;
+        }
+    };
+
+    let response = build_response(&request, &args).await;
+
+    if !args.quiet && !args.silent {
+        println!(
+            "{addr} \"{} {}\" {} {}",
+            request.method,
+            request.path,
+            response.status,
+            response.body.len(),
+        );
+    }
+
+    let bytes = response.into_bytes();
+    let stream = reader.into_inner();
+    let mut stream = stream;
+
+    if let Err(e) = stream.write_all(&bytes).await {
+        eprintln!("[{addr}] write error: {e}");
+    }
+}
+
+/// Entry point for a single accepted connection.
+pub async fn handle_tls(stream: TlsStream<TcpStream>, addr: SocketAddr, args: Args) {
     let mut reader = BufReader::new(stream);
 
     let request = match parse_request(&mut reader).await {
