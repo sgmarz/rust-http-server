@@ -12,7 +12,7 @@ use tokio::{
     io::{AsyncWriteExt, BufReader},
     net::TcpStream,
 };
-use tokio_rustls::{TlsStream};
+use tokio_rustls::server::TlsStream;
 
 /// Entry point for a single accepted connection.
 pub async fn handle(stream: TcpStream, addr: SocketAddr, args: Args) {
@@ -79,6 +79,9 @@ pub async fn handle_tls(stream: TlsStream<TcpStream>, addr: SocketAddr, args: Ar
 
     if let Err(e) = stream.write_all(&bytes).await {
         eprintln!("[{addr}] write error: {e}");
+    }
+    if let Err(e) = stream.shutdown().await {
+        eprintln!("[{addr}] TLS shutdown error: {e}");
     }
 }
 
