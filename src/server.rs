@@ -26,6 +26,11 @@ pub async fn run(args: Args) {
         println!("  cache   : {}s", args.cache);
         println!("  listing : {}", !args.no_dir_listing);
         println!("  index   : {}", !args.no_index);
+        if args.tls {
+            println!("    ┏TLS  : {}", args.tls);
+            println!("    ┠cert : {:?}", args.cert);
+            println!("    ┗key  : {:?}", args.key);
+        }
         println!();
         println!("Hit Ctrl-C to stop.");
         println!();

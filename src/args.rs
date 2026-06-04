@@ -42,10 +42,10 @@ pub struct Args {
     pub tls: bool,
 
     /// Key PEM file for TLS
-    #[arg(long)]
-    pub key: PathBuf,
+    #[arg(long, requires = "tls")]
+    pub key: Option<PathBuf>,
 
     /// Cert PEM file for TLS
-    #[arg(long)]
-    pub cert: PathBuf,
+    #[arg(long, requires = "tls")]
+    pub cert: Option<PathBuf>,
 }
