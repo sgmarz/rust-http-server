@@ -60,7 +60,7 @@ pub struct Args {
     #[arg(long, requires = "tls")]
     pub cert: Option<PathBuf>,
 
-    /// Change HTTP to HTTPS when using TLS.
+    /// Redirect HTTP to HTTPS when using TLS.
     #[arg(long, default_value_t = false, requires = "tls")]
     pub https: bool,
 }
