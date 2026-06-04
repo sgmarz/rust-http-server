@@ -97,7 +97,7 @@ async fn run_tls(args: Args) {
                             if args.https {
                                 let mut buf = [0u8; 1];
                                 stream.peek(&mut buf).await.unwrap_or(0);
-                                if buf[0] != 0x16 {
+                                if buf[0] != ssl::TLS_HANDSHAKE_HELLO {
                                     // Not TLS handshake, so redirect to HTTPS URL.
                                     let location = format!("https://{}:{}", args.address, args.port);
                                     let response = http::Response::redirect(&location);
@@ -111,21 +111,6 @@ async fn run_tls(args: Args) {
                             }
                             let stream = match acceptor.accept(stream).await {
                                 Ok(s) => s,
-                                // // rustls::Error::InvalidMessage::InvalidContentType
-                                // Err(e) if e.kind() == std::io::ErrorKind::InvalidData => {
-                                //     if !args.https {
-                                //         eprintln!("TLS data error: {e}");
-                                //         return;
-                                //     }
-                                //     // Upgrade HTTP to HTTPS here by setting Location header and 301 status.
-                                //     let location = format!("{}:{}", args.address, args.port);
-                                //     let response = http::Response::redirect(&location);
-                                //     let bytes = response.into_bytes();
-                                //     if let Err(e) = stream.write_all(&bytes).await {
-                                //         eprintln!("[{addr}] write error: {e}");
-                                //     }
-                                //     return;
-                                // }
                                 Err(e) => {
                                     eprintln!("TLS accept error: {e}");
                                     return;
