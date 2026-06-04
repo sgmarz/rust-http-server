@@ -3,6 +3,7 @@ mod client;
 mod http;
 mod mime;
 mod server;
+mod ssl;
 
 use args::Args;
 use clap::Parser;

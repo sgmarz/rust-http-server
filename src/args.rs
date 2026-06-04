@@ -36,4 +36,12 @@ pub struct Args {
     /// Silences all non-error output.
     #[arg(short, long, default_value_t = false)]
     pub quiet: bool,
+
+    /// Key PEM file for TLS
+    #[arg(short, long, default_value = "", requires = "cert_file")]
+    pub key_file: String,
+
+    /// Cert PEM file for TLS
+    #[arg(short, long, default_value = "", requires = "key_file")]
+    pub cert_file: String,
 }

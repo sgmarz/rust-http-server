@@ -10,5 +10,6 @@ path = "src/main.rs"
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
-openssl = { version = "0.10" }
-tokio-openssl = { version = "0.6" }
+tokio-rustls = { version = "0.26" }
+rustls = { version = "0.23" }
+rustls-pemfile = { version = "2" }
