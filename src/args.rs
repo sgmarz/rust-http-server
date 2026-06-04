@@ -37,11 +37,15 @@ pub struct Args {
     #[arg(short, long, default_value_t = false)]
     pub quiet: bool,
 
+    /// Enable TLS. If true, you must specify the key and cert files.
+    #[arg(short, long, default_value_t = false, requires = "key", requires = "cert")]
+    pub tls: bool,
+
     /// Key PEM file for TLS
-    #[arg(short, long, default_value = "", requires = "cert_file")]
-    pub key_file: String,
+    #[arg(long)]
+    pub key: PathBuf,
 
     /// Cert PEM file for TLS
-    #[arg(short, long, default_value = "", requires = "key_file")]
-    pub cert_file: String,
+    #[arg(long)]
+    pub cert: PathBuf,
 }

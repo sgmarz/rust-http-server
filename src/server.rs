@@ -1,4 +1,4 @@
-use crate::{args::Args, client, ssl::acceptor_tls};
+use crate::{args::Args, client};
 use std::sync::Arc;
 use tokio::{net::TcpListener, signal};
 
@@ -41,12 +41,6 @@ pub async fn run(args: Args) {
                     Ok((stream, addr)) => {
                         let args = Arc::clone(&args);
                         tokio::spawn(async move {
-                            let stream = if args.key_file.is_empty() || args.cert_file.is_empty() {
-                                stream
-                            }
-                            else {
-                                todo!();
-                            };
                             client::handle(stream, addr, (*args).clone()).await;
 
                         });
