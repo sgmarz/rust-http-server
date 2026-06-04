@@ -74,7 +74,7 @@ async fn run_tls(args: Args) {
     // Args should error check this for us.
     let cert_file = args.cert.clone().unwrap().to_string_lossy().into_owned();
     let key_file = args.key.clone().unwrap().to_string_lossy().into_owned();
-    let addr = args.host.clone().unwrap();
+    let addr = format!("{}:{}", args.address, args.port);
 
     let (acceptor, listener) = match ssl::create_tls_server(&cert_file, &key_file, &addr).await {
         Ok((x, y)) => (x, y),
@@ -95,10 +95,7 @@ async fn run_tls(args: Args) {
                         tokio::spawn(async move {
                             let stream = match acceptor.accept(stream).await {
                                 Ok(s) => s,
-                                Err(e) => {
-                                    eprintln!("{e}");
-                                    return;
-                                }
+                                Err(_) => return,
                             };
                             client::handle_tls(stream, addr, (*args).clone()).await;
                         });

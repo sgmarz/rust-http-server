@@ -59,8 +59,4 @@ pub struct Args {
     /// Cert PEM file for TLS
     #[arg(long, requires = "tls")]
     pub cert: Option<PathBuf>,
-
-    /// TLS Host Name (to match certificate)
-    #[arg(long, requires = "tls")]
-    pub host: Option<String>,
 }
