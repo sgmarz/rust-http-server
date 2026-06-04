@@ -59,4 +59,8 @@ pub struct Args {
     /// Cert PEM file for TLS
     #[arg(long, requires = "tls")]
     pub cert: Option<PathBuf>,
+
+    /// Change HTTP to HTTPS when using TLS.
+    #[arg(long, default_value_t = false, requires = "tls")]
+    pub https: bool,
 }

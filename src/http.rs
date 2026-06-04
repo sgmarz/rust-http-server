@@ -76,6 +76,7 @@ pub struct Response {
     pub content_type: &'static str,
     pub cache_max_age: u64,
     pub body: Vec<u8>,
+    pub location: Option<String>,
 }
 
 impl Response {
@@ -86,6 +87,7 @@ impl Response {
             content_type,
             cache_max_age,
             body,
+            location: None,
         }
     }
 
@@ -97,6 +99,7 @@ impl Response {
             content_type: "text/html",
             cache_max_age: 0,
             body,
+            location: None,
         }
     }
 
@@ -108,6 +111,7 @@ impl Response {
             content_type: "text/html",
             cache_max_age: 0,
             body,
+            location: None,
         }
     }
 
@@ -119,6 +123,7 @@ impl Response {
             content_type: "text/html",
             cache_max_age: 0,
             body,
+            location: None,
         }
     }
 
@@ -130,6 +135,23 @@ impl Response {
             content_type: "text/html",
             cache_max_age: 0,
             body,
+            location: None,
+        }
+    }
+
+    pub fn redirect(location: &str) -> Self {
+        let body = format!(
+            "<html><body>Redirecting to <a href=\"{location}\">{location}</a></body></html>"
+        );
+        // We can't use the normal into_bytes() because we need a Location header,
+        // so carry it as extra metadata or just build the raw bytes here.
+        Self {
+            status: 301,
+            reason: "Moved Permanently",
+            content_type: "text/html",
+            cache_max_age: 0,
+            body: body.into_bytes(),
+            location: Some(location.to_owned()),
         }
     }
 
@@ -141,14 +163,19 @@ impl Response {
         else {
             String::from("Cache-Control: no-store\r\n")
         };
+        let location_header = match &self.location {
+            Some(url) => format!("Location: {url}\r\n"),
+            None => String::new(),
+        };
 
         let header = format!(
-            "HTTP/1.1 {} {}\r\nContent-Type: {}; charset=utf-8\r\nContent-Length: {}\r\n{}Connection: close\r\n\r\n",
+            "HTTP/1.1 {} {}\r\nContent-Type: {}; charset=utf-8\r\nContent-Length: {}\r\n{}{}Connection: close\r\n\r\n",
             self.status,
             self.reason,
             self.content_type,
             self.body.len(),
             cache_header,
+            location_header,
         );
 
         let mut buf = header.into_bytes();

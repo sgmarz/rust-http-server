@@ -1,6 +1,6 @@
-use crate::{args::Args, client, ssl};
+use crate::{args::Args, client, http, ssl};
 use std::sync::Arc;
-use tokio::{net::TcpListener, signal};
+use tokio::{io::AsyncWriteExt, net::TcpListener, signal};
 
 pub async fn run(args: Args) {
     let bind_addr = format!("{}:{}", args.address, args.port);
@@ -20,6 +20,7 @@ pub async fn run(args: Args) {
         println!("  index   : {}", !args.no_index);
         if args.tls {
             println!("    ┏TLS  : {}", args.tls);
+            println!("    ┠https: {}", args.https);
             println!("    ┠cert : {}", args.cert.as_ref().unwrap().display());
             println!("    ┗key  : {}", args.key.as_ref().unwrap().display());
         }
@@ -89,13 +90,46 @@ async fn run_tls(args: Args) {
         tokio::select! {
             result = listener.accept() => {
                 match result {
-                    Ok((stream, addr)) => {
+                    Ok((mut stream, addr)) => {
                         let acceptor = acceptor.clone();
                         let args = Arc::clone(&args);
                         tokio::spawn(async move {
+                            if args.https {
+                                let mut buf = [0u8; 1];
+                                stream.peek(&mut buf).await.unwrap_or(0);
+                                if buf[0] != 0x16 {
+                                    // Not TLS handshake, so redirect to HTTPS URL.
+                                    let location = format!("https://{}:{}", args.address, args.port);
+                                    let response = http::Response::redirect(&location);
+                                    let bytes = response.into_bytes();
+                                    if let Err(e) = stream.write_all(&bytes).await {
+                                        eprintln!("[{addr}] write error: {e}");
+                                    }
+                                    stream.shutdown().await.ok();
+                                    return;
+                                }
+                            }
                             let stream = match acceptor.accept(stream).await {
                                 Ok(s) => s,
-                                Err(_) => return,
+                                // // rustls::Error::InvalidMessage::InvalidContentType
+                                // Err(e) if e.kind() == std::io::ErrorKind::InvalidData => {
+                                //     if !args.https {
+                                //         eprintln!("TLS data error: {e}");
+                                //         return;
+                                //     }
+                                //     // Upgrade HTTP to HTTPS here by setting Location header and 301 status.
+                                //     let location = format!("{}:{}", args.address, args.port);
+                                //     let response = http::Response::redirect(&location);
+                                //     let bytes = response.into_bytes();
+                                //     if let Err(e) = stream.write_all(&bytes).await {
+                                //         eprintln!("[{addr}] write error: {e}");
+                                //     }
+                                //     return;
+                                // }
+                                Err(e) => {
+                                    eprintln!("TLS accept error: {e}");
+                                    return;
+                                }
                             };
                             client::handle_tls(stream, addr, (*args).clone()).await;
                         });
@@ -110,39 +144,5 @@ async fn run_tls(args: Args) {
                 break;
             }
         }
-        // let (stream, peer_addr) = match listener.accept().await {
-        //     Ok((stream , addr)) => (stream, addr),
-        //     Err(e) => {
-        //         eprintln!("{}", e);
-        //         continue;
-        //     }
-        // };
-        // let acceptor = acceptor.clone();
-
-        // let fut = async move {
-        //     let mut stream = acceptor.accept(stream).await?;
-
-        //     let mut output = sink();
-        //     stream
-        //         .write_all(
-        //             &b"HTTP/1.0 200 ok\r\n\
-        //         Connection: close\r\n\
-        //         Content-length: 12\r\n\
-        //         \r\n\
-        //         Hello world!"[..],
-        //         )
-        //         .await?;
-        //     stream.shutdown().await?;
-        //     copy(&mut stream, &mut output).await?;
-        //     println!("Hello: {}", peer_addr);
-
-        //     Ok(()) as io::Result<()>
-        // };
-
-        // tokio::spawn(async move {
-        //     if let Err(err) = fut.await {
-        //         eprintln!("{:?}", err);
-        //     }
-        // });
     }
 }
