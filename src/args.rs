@@ -1,7 +1,7 @@
 use clap::Parser;
 use std::path::PathBuf;
 
-/// A simple static HTTP file server.
+/// A simple static HTTP/HTTPS file server.
 #[derive(Parser, Debug, Clone)]
 #[command(name = "http-server", version, about, long_about = None)]
 pub struct Args {
