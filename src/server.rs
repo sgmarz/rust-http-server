@@ -28,8 +28,8 @@ pub async fn run(args: Args) {
         println!("  index   : {}", !args.no_index);
         if args.tls {
             println!("    ┏TLS  : {}", args.tls);
-            println!("    ┠cert : {:?}", args.cert);
-            println!("    ┗key  : {:?}", args.key);
+            println!("    ┠cert : {}", args.cert.as_ref().unwrap().display());
+            println!("    ┗key  : {}", args.key.as_ref().unwrap().display());
         }
         println!();
         println!("Hit Ctrl-C to stop.");
