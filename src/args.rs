@@ -60,7 +60,7 @@ pub struct Args {
     #[arg(long, requires = "tls")]
     pub cert: Option<PathBuf>,
 
-    /// TLS Host
+    /// TLS Host Name (to match certificate)
     #[arg(long, requires = "tls")]
     pub host: Option<String>,
 }
