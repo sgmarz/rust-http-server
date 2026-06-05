@@ -22,5 +22,13 @@ async fn main() {
             process::exit(1);
         }
     };
+    // Check to make sure that the root is a directory, not a file.
+    {
+        let md = fs::metadata(&args.root).unwrap();
+        if !md.file_type().is_dir() {
+            eprintln!("Specified ROOT is not a directory.");
+            process::exit(1);
+        }
+    }
     server::run(args).await;
 }
