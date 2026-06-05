@@ -12,7 +12,7 @@ use args::Args;
 use clap::Parser;
 use std::{process, fs};
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() {
     let mut args = Args::parse();
     // HACK: The safe resolver pops . out of the PathBuf, leaving an empty
