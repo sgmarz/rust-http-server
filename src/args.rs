@@ -14,7 +14,7 @@ pub struct Args {
     pub port: u16,
 
     /// Address to bind to.
-    #[arg(short, long, default_value = "::")]
+    #[arg(short, long, default_value = "localhost")]
     pub address: String,
 
     /// Disable directory listing when no index.html is found.
