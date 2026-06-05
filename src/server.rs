@@ -81,14 +81,18 @@ async fn run_tls(args: Args) {
             return;
         }
     };
-    // We have acceptor: TlsAcceptor and listener: TcpListener at this point.
+    // We are going to share the args across tasks, so we don't want it
+    // to drop it. So, add an atomic reference count (Arc) around it.
     let args = Arc::new(args);
+    // We have acceptor: TlsAcceptor and listener: TcpListener at this point.
     loop {
         tokio::select! {
             result = listener.accept() => {
                 match result {
                     Ok((mut stream, addr)) => {
                         let acceptor = acceptor.clone();
+                        // Clone here increases the reference count. It being
+                        // dropped at the end will decrement the reference count.
                         let args = Arc::clone(&args);
                         tokio::spawn(async move {
                             // See if we need to redirect to HTTPS before accepting TLS.
