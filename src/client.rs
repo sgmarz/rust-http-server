@@ -115,14 +115,18 @@ async fn build_response(req: &Request, args: &Args) -> Response {
         let index = resolved.join("index.html");
         if !args.no_index && index.is_file() {
             serve_file(&index, args.cache).await
-        } else if !args.no_dir_listing {
+        }
+        else if !args.no_dir_listing {
             serve_directory(&resolved, &decoded, args.cache).await
-        } else {
+        }
+        else {
             Response::forbidden()
         }
-    } else if resolved.is_file() {
+    }
+    else if resolved.is_file() {
         serve_file(&resolved, args.cache).await
-    } else {
+    }
+    else {
         Response::not_found()
     }
 }
@@ -138,12 +142,14 @@ async fn resolve_safe(root: &Path, path: &Path) -> Option<PathBuf> {
     let normalized = normalize_path(path);
     let canon_path = if normalized.exists() {
         fs::canonicalize(&normalized).await.ok()?
-    } else {
+    }
+    else {
         normalized
     };
     if canon_path.starts_with(&canon_root) {
         Some(canon_path)
-    } else {
+    }
+    else {
         None
     }
 }
@@ -203,7 +209,8 @@ async fn serve_directory(dir: &Path, url_path: &str, cache_max_age: u64) -> Resp
     for (name, is_dir) in items {
         let display = if is_dir {
             format!("{name}/")
-        } else {
+        }
+        else {
             name.clone()
         };
         let href = format!("{}/{}", url_path.trim_end_matches('/'), name);
