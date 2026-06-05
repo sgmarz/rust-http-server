@@ -1,3 +1,7 @@
+//! SSL/TLS Utilities for HTTPS Server
+//! Stephen Marz
+//! 5-Jun-2026
+
 use rustls::pki_types::{CertificateDer, PrivateKeyDer, pem::PemObject};
 use std::{error::Error as StdError, io, net::ToSocketAddrs, sync::Arc};
 use tokio::net::TcpListener;
@@ -5,7 +9,12 @@ use tokio_rustls::{TlsAcceptor, rustls};
 
 pub const TLS_HANDSHAKE_HELLO: u8 = 0x16;
 
-/// # Create a TLS acceptor and listener.
+/// ## Create a TLS acceptor and listener.
+/// 
+/// Returns a tuple with the acceptor first, then the listener.
+/// `(TlsAcceptor, TcpListener)`
+/// 
+/// `let (acceptor, listener) = create_tls_server("cert.pem", "key.pem", &args.addr).await?;`
 pub async fn create_tls_server(
     cert_path: &str,
     key_path: &str,

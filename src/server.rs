@@ -1,6 +1,6 @@
 use crate::{args::Args, client, http, ssl};
 use std::sync::Arc;
-use tokio::{io::AsyncWriteExt, net::TcpListener, signal};
+use tokio::{io::AsyncWriteExt, net::TcpListener, signal::ctrl_c};
 
 pub async fn run(args: Args) {
     let bind_addr = format!("{}:{}", args.address, args.port);
@@ -28,12 +28,9 @@ pub async fn run(args: Args) {
         println!("Hit Ctrl-C to stop.");
         println!();
     }
-
-    if !args.tls {
-        run_http(args).await;
-    }
-    else {
-        run_tls(args).await;
+    match args.tls {
+        true => run_tls(args).await,
+        false => run_http(args).await,
     }
 }
 
@@ -58,10 +55,10 @@ async fn run_http(args: Args) {
                             client::handle(stream, addr, (*args).clone()).await;
                         });
                     }
-                    Err(e) => eprintln!("accept error: {e}"),
+                    Err(e) => eprintln!("error: accept: {e}"),
                 }
             }
-            _ = signal::ctrl_c() => {
+            _ = ctrl_c() => {
                 if !args.quiet {
                     println!("\nshutting down.");
                 }
@@ -94,6 +91,9 @@ async fn run_tls(args: Args) {
                         let acceptor = acceptor.clone();
                         let args = Arc::clone(&args);
                         tokio::spawn(async move {
+                            // See if we need to redirect to HTTPS before accepting TLS.
+                            // If the client is trying to connect without TLS, we can redirect
+                            // them to the HTTPS URL instead of just dropping the connection.
                             if args.https {
                                 let mut buf = [0u8; 1];
                                 stream.peek(&mut buf).await.unwrap_or(0);
@@ -122,7 +122,7 @@ async fn run_tls(args: Args) {
                     Err(e) => eprintln!("accept error: {e}"),
                 }
             }
-            _ = signal::ctrl_c() => {
+            _ = ctrl_c() => {
                 if !args.quiet {
                     println!("\nshutting down.");
                 }
