@@ -1,3 +1,6 @@
+//! HTTP/HTTPS Server in Rust using Tokio and Rustls.
+//! Stephen Marz
+//! 5-Jun-2026
 mod args;
 mod client;
 mod http;

@@ -1,3 +1,6 @@
+//! Argument parsing for the HTTP server.
+//! Stephen Marz
+//! 5-Jun-2026
 use clap::Parser;
 use std::path::PathBuf;
 
@@ -53,14 +56,14 @@ pub struct Args {
     pub tls: bool,
 
     /// Key PEM file for TLS
-    #[arg(long, requires = "tls")]
+    #[arg(short = 'k', long, requires = "tls")]
     pub key: Option<PathBuf>,
 
     /// Cert PEM file for TLS
-    #[arg(long, requires = "tls")]
+    #[arg(short = 'e', long, requires = "tls")]
     pub cert: Option<PathBuf>,
 
     /// Redirect HTTP to HTTPS when using TLS.
-    #[arg(long, default_value_t = false, requires = "tls")]
+    #[arg(short = 'u', long, default_value_t = false, requires = "tls")]
     pub https: bool,
 }

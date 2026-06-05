@@ -1,3 +1,6 @@
+//! MIME type detection based on file extension and content.
+//! Stephen Marz
+//! 5-Jun-2026
 use std::{fs::File, io::Read, path::Path};
 
 pub fn mime_type(path: &Path) -> &'static str {

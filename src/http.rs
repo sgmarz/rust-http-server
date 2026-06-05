@@ -1,3 +1,6 @@
+//! HTTP protocol parsing and response building.
+//! Stephen Marz
+//! 5-Jun-2026
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, BufReader};
 
 #[derive(Debug)]
@@ -181,5 +184,18 @@ impl Response {
         let mut buf = header.into_bytes();
         buf.extend_from_slice(&self.body);
         buf
+    }
+}
+
+pub fn response_name(code: u16) -> &'static str {
+    match code {
+        200 => "OK",
+        301 => "Moved Permanently",
+        403 => "Forbidden",
+        404 => "Not Found",
+        405 => "Method Not Allowed",
+        413 => "Content Too Large",
+        500 => "Internal Server Error",
+        _ => "Unknown Status",
     }
 }

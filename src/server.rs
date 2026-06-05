@@ -1,3 +1,6 @@
+//! Main server loop and connection handling.
+//! Stephen Marz
+//! 5-Jun-2026
 use crate::{args::Args, client, http, ssl};
 use std::sync::Arc;
 use tokio::{io::AsyncWriteExt, net::TcpListener, signal::ctrl_c};
@@ -105,6 +108,14 @@ async fn run_tls(args: Args) {
                                     // Not TLS handshake, so redirect to HTTPS URL.
                                     let location = format!("https://{}:{}", args.address, args.port);
                                     let response = http::Response::redirect(&location);
+                                    if !args.quiet && !args.silent {
+                                        println!(
+                                            "{addr} HTTP -> HTTPS ({} {}) ({} bytes).",
+                                            response.status,
+                                            http::response_name(response.status),
+                                            response.body.len(),
+                                        );
+                                    }
                                     let bytes = response.into_bytes();
                                     if let Err(e) = stream.write_all(&bytes).await {
                                         eprintln!("[{addr}] write error: {e}");
@@ -115,8 +126,13 @@ async fn run_tls(args: Args) {
                             }
                             let stream = match acceptor.accept(stream).await {
                                 Ok(s) => s,
+                                Err(e) if e.kind() == std::io::ErrorKind::InvalidData => {
+                                    // Typically a certificate error or TLS handshake failure. 
+                                    // Log it and drop the connection.
+                                    return;
+                                }
                                 Err(e) => {
-                                    eprintln!("TLS accept error: {e}");
+                                    eprintln!("[{addr}] TLS accept error: {e}");
                                     return;
                                 }
                             };

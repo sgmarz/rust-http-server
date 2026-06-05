@@ -1,7 +1,6 @@
 //! SSL/TLS Utilities for HTTPS Server
 //! Stephen Marz
 //! 5-Jun-2026
-
 use rustls::pki_types::{CertificateDer, PrivateKeyDer, pem::PemObject};
 use std::{error::Error as StdError, io, net::ToSocketAddrs, sync::Arc};
 use tokio::net::TcpListener;

@@ -1,6 +1,9 @@
+//! Client connection handling and response generation.
+//! Stephen Marz
+//! 5-Jun-2026
 use crate::{
     args::Args,
-    http::{ParseError, Request, Response, parse_request},
+    http::{ParseError, Request, Response, parse_request, response_name},
     mime,
 };
 use std::{
@@ -31,10 +34,11 @@ pub async fn handle(stream: TcpStream, addr: SocketAddr, args: Args) {
 
     if !args.quiet && !args.silent {
         println!(
-            "{addr} \"{} {}\" {} {}",
+            "{addr} \"{} {}\" ({} {}) ({} bytes).",
             request.method,
             request.path,
             response.status,
+            response_name(response.status),
             response.body.len(),
         );
     }
@@ -65,10 +69,11 @@ pub async fn handle_tls(stream: TlsStream<TcpStream>, addr: SocketAddr, args: Ar
 
     if !args.quiet && !args.silent {
         println!(
-            "{addr} \"{} {}\" {} {}",
+            "{addr} \"{} {}\" ({} {}) ({} bytes).",
             request.method,
             request.path,
             response.status,
+            response_name(response.status),
             response.body.len(),
         );
     }
