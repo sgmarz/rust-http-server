@@ -1,12 +1,21 @@
 //! HTTP protocol parsing and response building.
 //! Stephen Marz
 //! 5-Jun-2026
-use tokio::io::{AsyncBufReadExt, AsyncReadExt, BufReader};
+use tokio::io::{AsyncBufRead, AsyncBufReadExt, AsyncReadExt};
 
 #[derive(Debug)]
 pub struct Request {
     pub method: String,
     pub path: String,
+}
+
+impl Request {
+    pub fn new(method: &str, path: &str) -> Self {
+        Self {
+            method: method.to_owned(),
+            path: path.to_owned(),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -28,11 +37,9 @@ impl std::fmt::Display for ParseError {
 
 impl std::error::Error for ParseError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        if let ParseError::Io(e) = self {
-            Some(e)
-        }
-        else {
-            None
+        match self {
+            ParseError::Io(e) => Some(e),
+            _ => None,
         }
     }
 }
@@ -45,19 +52,23 @@ impl From<std::io::Error> for ParseError {
 
 // We hand-roll the parser to avoid external deps.  Only the request line is
 // needed for a static file server; headers are drained but not stored.
-pub async fn parse_request<R: AsyncReadExt + Unpin>(
-    stream: &mut BufReader<R>,
+pub async fn parse_request<R: AsyncBufRead + AsyncReadExt + Unpin>(
+    stream: &mut R,
 ) -> Result<Request, ParseError> {
     // Read the request line (e.g. "GET /index.html HTTP/1.1")
     let mut request_line = String::new();
-    let n = stream.read_line(&mut request_line).await?;
-    if n == 0 {
-        return Err(ParseError::Eof);
+
+    // Since HTTP is line-oriented, we need BufReader.
+    match stream.read_line(&mut request_line).await? {
+        // We only care if this fails. We can detect this by getting 0 bytes, which
+        // means that the client closed the connection before sending a request.
+        0 => return Err(ParseError::Eof),
+        _ => {}
     }
 
     let mut parts = request_line.split_whitespace();
-    let method = parts.next().ok_or(ParseError::BadRequestLine)?.to_owned();
-    let path = parts.next().ok_or(ParseError::BadRequestLine)?.to_owned();
+    let method = parts.next().ok_or(ParseError::BadRequestLine)?;
+    let path = parts.next().ok_or(ParseError::BadRequestLine)?;
 
     // Drain headers so the stream is ready for the next request.
     loop {
@@ -68,7 +79,7 @@ pub async fn parse_request<R: AsyncReadExt + Unpin>(
         }
     }
 
-    Ok(Request { method, path })
+    Ok(Request::new(method, path))
 }
 
 // ── Response ─────────────────────────────────────────────────────────────────
@@ -94,58 +105,10 @@ impl Response {
         }
     }
 
-    pub fn not_found() -> Self {
-        let body = b"<html><body><h1>404 Not Found</h1></body></html>".to_vec();
-        Self {
-            status: 404,
-            reason: "Not Found",
-            content_type: "text/html",
-            cache_max_age: 0,
-            body,
-            location: None,
-        }
-    }
-
-    pub fn forbidden() -> Self {
-        let body = b"<html><body><h1>403 Forbidden</h1></body></html>".to_vec();
-        Self {
-            status: 403,
-            reason: "Forbidden",
-            content_type: "text/html",
-            cache_max_age: 0,
-            body,
-            location: None,
-        }
-    }
-
-    pub fn method_not_allowed() -> Self {
-        let body = b"<html><body><h1>405 Method Not Allowed</h1></body></html>".to_vec();
-        Self {
-            status: 405,
-            reason: "Method Not Allowed",
-            content_type: "text/html",
-            cache_max_age: 0,
-            body,
-            location: None,
-        }
-    }
-
-    pub fn too_large() -> Self {
-        let body = b"<html><body><h1>413 Content Too Large</h1></body></html>".to_vec();
-        Self {
-            status: 413,
-            reason: "Content Too Large",
-            content_type: "text/html",
-            cache_max_age: 0,
-            body,
-            location: None,
-        }
-    }
-
     pub fn redirect(location: &str) -> Self {
         let body = format!(
-            "<html><body>Redirecting to <a href=\"{location}\">{location}</a></body></html>"
-        );
+            "<html><head><title>301 Moved Permanently</title></head><body><h1>301 Moved Permanently</h1><p>Redirecting to <a href=\"{location}\">{location}</a></p></body></html>"
+        ).into_bytes();
         // We can't use the normal into_bytes() because we need a Location header,
         // so carry it as extra metadata or just build the raw bytes here.
         Self {
@@ -153,8 +116,56 @@ impl Response {
             reason: "Moved Permanently",
             content_type: "text/html",
             cache_max_age: 0,
-            body: body.into_bytes(),
+            body,
             location: Some(location.to_owned()),
+        }
+    }
+
+    pub fn not_found() -> Self {
+        let status = 404;
+        Self {
+            status,
+            reason: "Not Found",
+            content_type: "text/html",
+            cache_max_age: 0,
+            body: make_body(status),
+            location: None,
+        }
+    }
+
+    pub fn forbidden() -> Self {
+        let status = 403;
+        Self {
+            status,
+            reason: "Forbidden",
+            content_type: "text/html",
+            cache_max_age: 0,
+            body: make_body(status),
+            location: None,
+        }
+    }
+
+    pub fn method_not_allowed() -> Self {
+        let status = 405;
+        Self {
+            status,
+            reason: "Method Not Allowed",
+            content_type: "text/html",
+            cache_max_age: 0,
+            body: make_body(status),
+            location: None,
+        }
+    }
+
+    pub fn too_large() -> Self {
+        let status = 413;
+        Self {
+            status,
+            reason: "Content Too Large",
+            content_type: "text/html",
+            cache_max_age: 0,
+            body: make_body(status),
+            location: None,
         }
     }
 
@@ -196,7 +207,14 @@ pub fn response_name(code: u16) -> &'static str {
         404 => "Not Found",
         405 => "Method Not Allowed",
         413 => "Content Too Large",
-        500 => "Internal Server Error",
         _ => "Unknown Status",
     }
+}
+
+pub fn make_body(code: u16) -> Vec<u8> {
+    let name = response_name(code);
+    format!(
+        "<html><head><title>{code} {name}</title></head><body><h1>{code} {name}</h1></body></html>"
+    )
+    .into_bytes()
 }
