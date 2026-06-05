@@ -5,6 +5,7 @@ use tokio_rustls::{TlsAcceptor, rustls};
 
 pub const TLS_HANDSHAKE_HELLO: u8 = 0x16;
 
+/// # Create a TLS acceptor and listener.
 pub async fn create_tls_server(
     cert_path: &str,
     key_path: &str,
