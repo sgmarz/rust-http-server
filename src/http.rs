@@ -1,4 +1,4 @@
-use tokio::io::{AsyncBufReadExt, AsyncRead, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncReadExt, BufReader};
 
 #[derive(Debug)]
 pub struct Request {
@@ -42,7 +42,7 @@ impl From<std::io::Error> for ParseError {
 
 // We hand-roll the parser to avoid external deps.  Only the request line is
 // needed for a static file server; headers are drained but not stored.
-pub async fn parse_request<R: AsyncRead + Unpin>(
+pub async fn parse_request<R: AsyncReadExt + Unpin>(
     stream: &mut BufReader<R>,
 ) -> Result<Request, ParseError> {
     // Read the request line (e.g. "GET /index.html HTTP/1.1")
