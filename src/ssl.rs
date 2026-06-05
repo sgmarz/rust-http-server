@@ -13,7 +13,7 @@ pub async fn create_tls_server(
     let sockaddr = addr
         .to_socket_addrs()?
         .next()
-        .ok_or_else(|| io::Error::from(io::ErrorKind::AddrNotAvailable))?;
+        .ok_or(io::Error::from(io::ErrorKind::AddrNotAvailable))?;
     let certs = CertificateDer::pem_file_iter(cert_path)?.collect::<Result<Vec<_>, _>>()?;
     let key = PrivateKeyDer::from_pem_file(key_path)?;
     let config = rustls::ServerConfig::builder()
