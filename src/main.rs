@@ -28,5 +28,9 @@ async fn main() {
             }
         }
     }
+    else if args.root.to_string_lossy().contains("..") {
+        eprintln!("Root directory cannot contain '..' for security reasons. Use absolute paths.");
+        std::process::exit(1);
+    }
     server::run(args).await;
 }
