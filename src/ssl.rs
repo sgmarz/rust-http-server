@@ -9,10 +9,10 @@ use tokio_rustls::{TlsAcceptor, rustls};
 pub const TLS_HANDSHAKE_HELLO: u8 = 0x16;
 
 /// ## Create a TLS acceptor and listener.
-/// 
+///
 /// Returns a tuple with the acceptor first, then the listener.
 /// `(TlsAcceptor, TcpListener)`
-/// 
+///
 /// `let (acceptor, listener) = create_tls_server("cert.pem", "key.pem", &args.addr).await?;`
 pub async fn create_tls_server(
     cert_path: &str,

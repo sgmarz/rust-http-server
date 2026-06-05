@@ -30,8 +30,7 @@ impl std::error::Error for ParseError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         if let ParseError::Io(e) = self {
             Some(e)
-        }
-        else {
+        } else {
             None
         }
     }
@@ -162,8 +161,7 @@ impl Response {
     pub fn into_bytes(self) -> Vec<u8> {
         let cache_header = if self.cache_max_age > 0 {
             format!("Cache-Control: max-age={}\r\n", self.cache_max_age)
-        }
-        else {
+        } else {
             String::from("Cache-Control: no-store\r\n")
         };
         let location_header = match &self.location {

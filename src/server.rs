@@ -127,7 +127,7 @@ async fn run_tls(args: Args) {
                             let stream = match acceptor.accept(stream).await {
                                 Ok(s) => s,
                                 Err(e) if e.kind() == std::io::ErrorKind::InvalidData => {
-                                    // Typically a certificate error or TLS handshake failure. 
+                                    // Typically a certificate error or TLS handshake failure.
                                     // Log it and drop the connection.
                                     return;
                                 }
