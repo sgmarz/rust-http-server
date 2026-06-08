@@ -21,6 +21,7 @@ pub async fn run(args: Args) {
         println!("  cache   : {}s", args.cache);
         println!("  listing : {}", !args.no_dir_listing);
         println!("  index   : {}", !args.no_index);
+        println!("  markdown: {}", args.md);
         if args.tls {
             println!("    ┏TLS  : {}", args.tls);
             println!("    ┠https: {}", args.https);

@@ -16,6 +16,7 @@ use tokio::{
     net::TcpStream,
 };
 use tokio_rustls::server::TlsStream;
+use markdown;
 
 /// Entry point for a single accepted connection.
 pub async fn handle(stream: TcpStream, addr: SocketAddr, args: Args) {
@@ -124,7 +125,12 @@ async fn build_response(req: &Request, args: &Args) -> Response {
         }
     }
     else if resolved.is_file() {
-        serve_file(&resolved, args.cache).await
+        if args.md && resolved.to_string_lossy().ends_with(".md") {
+            serve_markdown(&resolved, args.cache).await
+        }
+        else {
+            serve_file(&resolved, args.cache).await
+        }
     }
     else {
         Response::not_found()
@@ -175,6 +181,19 @@ fn normalize_path(path: &Path) -> PathBuf {
 async fn serve_file(path: &Path, cache_max_age: u64) -> Response {
     match fs::read(path).await {
         Ok(bytes) => Response::ok(bytes, mime::mime_type(path), cache_max_age),
+        Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => Response::forbidden(),
+        Err(e) if e.kind() == std::io::ErrorKind::OutOfMemory => Response::too_large(),
+        Err(_) => Response::not_found(),
+    }
+}
+
+// --- Markdown Serving ─────────────────────────────────────────────────────────
+async fn serve_markdown(path: &Path, cache_max_age: u64) -> Response {
+    match fs::read_to_string(path).await {
+        Ok(content) => {
+            let html = markdown::to_html(&content);
+            Response::ok(html.into_bytes(), "text/html", cache_max_age)
+        }
         Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => Response::forbidden(),
         Err(e) if e.kind() == std::io::ErrorKind::OutOfMemory => Response::too_large(),
         Err(_) => Response::not_found(),

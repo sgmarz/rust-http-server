@@ -66,4 +66,8 @@ pub struct Args {
     /// Redirect HTTP to HTTPS when using TLS.
     #[arg(short = 'r', long, default_value_t = false, requires = "tls")]
     pub https: bool,
+
+    /// Convert Markdown into HTML on the fly. Only applies to .md files.
+    #[arg(short = 'm', long, default_value_t = false)]
+    pub md: bool,
 }
