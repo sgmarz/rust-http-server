@@ -10,7 +10,7 @@ mod ssl;
 
 use args::Args;
 use clap::Parser;
-use std::{process, fs};
+use std::{fs, process};
 
 #[tokio::main]
 async fn main() {

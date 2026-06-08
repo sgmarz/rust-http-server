@@ -6,6 +6,7 @@ use crate::{
     http::{ParseError, Request, Response, parse_request, response_name},
     mime,
 };
+use markdown;
 use std::{
     net::SocketAddr,
     path::{Path, PathBuf},
@@ -16,7 +17,6 @@ use tokio::{
     net::TcpStream,
 };
 use tokio_rustls::server::TlsStream;
-use markdown;
 
 /// Entry point for a single accepted connection.
 pub async fn handle(stream: TcpStream, addr: SocketAddr, args: Args) {
