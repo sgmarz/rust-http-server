@@ -46,9 +46,15 @@ fn main() {
         .block_on(server::run(args));
 }
 
+/// Spawns a child process with the same args but detached from the terminal.
+/// 
+/// I have many ways to do this on Unix, but this is the closest I could get to
+/// a cross-platform solution that also works on Windows. It is not perfect, but it
+/// works well enough for this simple server. The child process is fully independent and
+/// will continue running even if the parent process exits. The child process will not
+/// have access to the terminal, so it will not print any output.
 fn daemonize(args: &Args) {
     let exe = current_exe().expect("cannot find current exe");
-
     let mut cmd = Command::new(exe);
 
     // Forward all args except --background / -b
