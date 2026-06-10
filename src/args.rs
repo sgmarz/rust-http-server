@@ -12,6 +12,10 @@ pub struct Args {
     #[arg(default_value = ".")]
     pub root: PathBuf,
 
+    /// Send the server to the background.
+    #[arg(short, long, default_value_t = false)]
+    pub background: bool,
+
     /// Port to listen on.
     #[arg(short, long, default_value_t = 8080)]
     pub port: u16,
